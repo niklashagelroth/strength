@@ -13,8 +13,8 @@ vid första starten.
 - **Träna** — dagens pass väljs utifrån veckodagen enligt programmets schema. Ett tryck startar passet; varje set loggas med vikt, reps, tid eller meter plus valfri RIR. Passet sparas löpande i IndexedDB, så du kan låsa telefonen eller byta flik mitt i utan att tappa något. Passtid och vila sedan senaste avklarade set visas löpande.
 - **Senast-värden** — varje övning visar vad du gjorde förra gången, och ett tomt set fylls i med förra gångens värden när du trycker ✓. Progressiv överbelastning utan att bläddra i historiken.
 - **12-veckors progression** — appen räknar fram vecka, fas och belastningsmål (RIR 3 → RIR 1-2 → 3-5 reps) från startdagen. Under lätta veckor (4 och 8) erbjuds *Starta (lätt vecka)* som skalar ner arbetsseten cirka 45 %, precis som belastningsreglerna säger.
-- **Rutiner** — skapa och ändra pass, ordna övningar, sätt set och dos per övning, kopiera en rutin som utgångspunkt. De åtta inbyggda rutinerna (Uppvärmning, Styrka A/B/C, Axelblock, Daglig rörlighet, Zon 2, Intervaller) kan ändras fritt.
-- **Övningar** — hela biblioteket med sök och kategorifilter. Varje övning har utförande, nyckelpunkt, utrustning, mätsätt (vikt × reps / reps / tid / distans), om dosen gäller per sida, och egen anteckning. Övningar som rör axeln visar programmets axelregel i passet.
+- **Rutiner** — skapa och ändra pass, ordna övningar, sätt set och reps per övning, kopiera en rutin som utgångspunkt. De åtta inbyggda rutinerna (Uppvärmning, Styrka A/B/C, Axelblock, Daglig rörlighet, Zon 2, Intervaller) kan ändras fritt.
+- **Övningar** — hela biblioteket med sök och kategorifilter. Varje övning har utförande, nyckelpunkt, utrustning, mätsätt (vikt × reps / reps / tid / distans), om repsen gäller per sida, och egen anteckning. Övningar som rör axeln visar programmets axelregel i passet.
 - **Instruktion och video** — varje övning har klickbara länkar till teknikklipp och skriftliga instruktioner, och i passet räcker ett tryck på ▶ vid övningens namn. Länkarna är sökningar på engelska söktermer (`exercise-links.js`) i stället för enskilda klipp, så de kan inte dö och funkar även för övningar du själv lagt in. Vill du ha ett bestämt klipp klistrar du in adressen i övningens fält *Länk till video eller instruktion* — då används den i stället.
 - **Fritt pass** — starta utan rutin och lägg till övningar medan du kör.
 - **Statistik** — pass och volym per vecka (senaste 8), tyngsta lyften med uppskattat 1RM, historik per övning, och full passhistorik.
@@ -79,7 +79,7 @@ fortsätter en installerad app att servera den gamla versionen.
 Fyra stores i IndexedDB (`styrka-app`), plus `meta` för nyckel/värde
 (`programStartDate`, `bodyWeight`, `lastExportAt`):
 
-- `exercises` — namn, kategori, mätsätt, per sida, standarddos, utförande, nyckelpunkt, axelregel, egen länk (`videoUrl`)
+- `exercises` — namn, kategori, mätsätt, per sida, standardreps, utförande, nyckelpunkt, axelregel, egen länk (`videoUrl`)
 - `routines` — namn, typ, beskrivning och en ordnad lista `items` (`exerciseId`, `sets`, `reps`)
 - `sessions` — ett loggat pass: datum, programvecka, `entries` med `sets` (`weight`, `reps`, `seconds`, `meters`, `rir`, `done`). Ett pågående pass ligger kvar med `status: 'active'`
 - `checkins` — veckologgen, en post per datum

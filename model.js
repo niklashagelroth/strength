@@ -77,7 +77,7 @@ export function normalizeExercise(raw = {}) {
     category: CATEGORIES[raw.category] ? raw.category : 'styrka',
     metric: METRICS[raw.metric] ? raw.metric : 'weight_reps',
     perSide: !!raw.perSide,
-    // Standarddos — används som mål när övningen läggs i en rutin.
+    // Standardreps — används som mål när övningen läggs i en rutin.
     defaultSets: numOr(raw.defaultSets, 3),
     defaultReps: raw.defaultReps || '',
     // Text från programmet: hur den utförs och vad man ska tänka på.
@@ -97,7 +97,7 @@ export function normalizeExercise(raw = {}) {
 }
 
 // =====================================================================
-//  Rutin — en ordnad lista övningar med måldos
+//  Rutin — en ordnad lista övningar med målreps
 // =====================================================================
 
 export function createRoutine(data = {}) {
@@ -132,8 +132,8 @@ export function normalizeRoutineItem(raw = {}) {
   };
 }
 
-// Läsbar dos, t.ex. "4 × 4-6" eller "3 × 20-30 s/sida".
-export function doseLabel(item, exercise) {
+// Läsbara reps, t.ex. "4 × 4-6" eller "3 × 20-30 s/sida".
+export function repsLabel(item, exercise) {
   const ex = exercise || {};
   const reps = item.reps || ex.defaultReps || '';
   const unit = ex.metric === 'time' ? ' s' : ex.metric === 'distance' ? ' m' : '';

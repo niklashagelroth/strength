@@ -3,7 +3,7 @@
 // inläsningen är idempotent: befintliga poster och din historik rörs aldrig.
 //
 // metric: weight_reps | reps | time | distance
-// perSide: true → dosen gäller per sida (ett loggat set = båda sidor)
+// perSide: true → repsen gäller per sida (ett loggat set = båda sidor)
 // shoulderRule: true → visa axelregeln i appen
 
 export const DEFAULT_EXERCISES = [

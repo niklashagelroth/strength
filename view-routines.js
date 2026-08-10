@@ -3,7 +3,7 @@
 import { putRoutine, deleteRoutine, putSession } from './db.js';
 import {
   createRoutine, normalizeRoutine, normalizeRoutineItem, createSession,
-  ROUTINE_TYPES, CATEGORIES, doseLabel, numOrNull, uid,
+  ROUTINE_TYPES, CATEGORIES, repsLabel, numOrNull, uid,
 } from './model.js';
 import { programStatus } from './program.js';
 import {
@@ -79,7 +79,7 @@ function openRoutineDetail(ctx, routine) {
           ex && ex.shoulderRule ? el('span', { class: 'shoulder-dot' }, '⚠') : null,
         ]),
         el('div', { class: 'ir-sub' }, [
-          doseLabel(item, ex),
+          repsLabel(item, ex),
           item.notes ? ` · ${item.notes}` : '',
         ].join('')),
       ]),
@@ -174,7 +174,7 @@ function openRoutineEditor(ctx, existing) {
       const setsInput = numInput(item.sets, { min: '1', max: '12', class: 'mini' });
       setsInput.addEventListener('input', () => { item.sets = numOrNull(setsInput.value) || 1; });
       const repsInput = el('input', {
-        type: 'text', value: item.reps, placeholder: ex ? (ex.defaultReps || 'dos') : 'dos', class: 'mini',
+        type: 'text', value: item.reps, placeholder: ex ? (ex.defaultReps || 'reps') : 'reps', class: 'mini',
       });
       repsInput.addEventListener('input', () => { item.reps = repsInput.value; });
 

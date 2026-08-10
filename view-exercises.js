@@ -79,7 +79,7 @@ export function renderExercises(app, ctx) {
           el('div', { class: 'rb-sub' }, [
             CATEGORIES[ex.category],
             ' · ',
-            doseText(ex),
+            repsText(ex),
             ex.perSide ? ' /sida' : '',
             pb ? ` · PB ${pbText(pb)}` : '',
           ].join('')),
@@ -102,7 +102,7 @@ export function filterExercises(exercises, q, category) {
     .sort((a, b) => a.name.localeCompare(b.name, 'sv'));
 }
 
-function doseText(ex) {
+function repsText(ex) {
   const unit = ex.metric === 'time' ? ' s' : ex.metric === 'distance' ? ' m' : '';
   return ex.defaultReps ? `${ex.defaultSets} × ${ex.defaultReps}${unit}` : `${ex.defaultSets} set`;
 }
@@ -128,8 +128,8 @@ export function exerciseInfoBody(ex) {
     ex.equipment ? chip(ex.equipment, 'alt') : null,
   ]));
   wrap.appendChild(el('div', { class: 'info-block' }, [
-    el('span', { class: 'ib-label' }, 'Dos'),
-    el('div', {}, doseText(ex) + (ex.perSide ? ' per sida' : '')),
+    el('span', { class: 'ib-label' }, 'Reps'),
+    el('div', {}, repsText(ex) + (ex.perSide ? ' per sida' : '')),
   ]));
   if (ex.howTo) {
     wrap.appendChild(el('div', { class: 'info-block' }, [
@@ -286,10 +286,10 @@ export function openExerciseForm(ctx, existing, onSaved = null) {
   body.appendChild(field('Namn', nameInput));
   body.appendChild(field('Kategori', catSelect));
   body.appendChild(field('Mätsätt', metricSelect, 'Styr vilka fält du loggar per set.'));
-  body.appendChild(el('label', { class: 'field check' }, [perSideInput, el('span', {}, 'Dosen gäller per sida')]));
+  body.appendChild(el('label', { class: 'field check' }, [perSideInput, el('span', {}, 'Repsen gäller per sida')]));
   body.appendChild(el('div', { class: 'two-col' }, [
     field('Set som standard', setsInput),
-    el('label', { class: 'field' }, [el('span', {}, 'Reps / dos'), repsInput, repsHint]),
+    el('label', { class: 'field' }, [el('span', {}, 'Reps'), repsInput, repsHint]),
   ]));
   body.appendChild(field('Utrustning (valfri)', equipInput));
   body.appendChild(field('Utförande (valfritt)', howToInput));
@@ -396,7 +396,7 @@ export function exercisePickerModal(ctx, { title = 'Välj övning', exclude = ne
       }, [
         el('div', { class: 'rb-main' }, [
           el('div', { class: 'rb-title' }, ex.name),
-          el('div', { class: 'rb-sub' }, `${CATEGORIES[ex.category]} · ${doseText(ex)}`),
+          el('div', { class: 'rb-sub' }, `${CATEGORIES[ex.category]} · ${repsText(ex)}`),
         ]),
         el('span', { class: 'rb-go' }, '＋'),
       ]));
