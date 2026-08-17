@@ -1,7 +1,7 @@
 // sw.js — Service worker för offline. Cache-first för app-skalet.
 // Höj CACHE_VERSION när du ändrar någon av filerna nedan.
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `styrka-${CACHE_VERSION}`;
 
 // Relativa sökvägar så det funkar på en GitHub Pages-subpath.
@@ -17,6 +17,7 @@ const APP_SHELL = [
   './reference.js',
   './load-program.js',
   './exercise-links.js',
+  './timer.js',
   './stats.js',
   './backup.js',
   './ui.js',

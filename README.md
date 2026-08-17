@@ -15,12 +15,46 @@ vid första starten.
 - **12-veckors progression** — appen räknar fram vecka, fas och belastningsmål (RIR 3 → RIR 1-2 → 3-5 reps) från startdagen. Under lätta veckor (4 och 8) erbjuds *Starta (lätt vecka)* som skalar ner arbetsseten cirka 45 %, precis som belastningsreglerna säger.
 - **Rutiner** — skapa och ändra pass, ordna övningar, sätt set och reps per övning, kopiera en rutin som utgångspunkt. De åtta inbyggda rutinerna (Uppvärmning, Styrka A/B/C, Axelblock, Daglig rörlighet, Zon 2, Intervaller) kan ändras fritt.
 - **Övningar** — hela biblioteket med sök och kategorifilter. Varje övning har utförande, nyckelpunkt, utrustning, mätsätt (vikt × reps / reps / tid / distans), om repsen gäller per sida, och egen anteckning. Övningar som rör axeln visar programmets axelregel i passet.
+- **Nedräkning för tidsövningar** — övningar som mäts i tid (plankor, isometrier, stretchar, wall sit, zon 2) får en ▶-knapp i varje set. Den räknar ned setets måltid i ett flytande fält och signalerar när tiden är ute, **även med släckt skärm**. Hållen tid fylls in i sekundfältet automatiskt. Måltiden tas från sekundfältet om du fyllt i något, annars från förra passet, annars från programmets mål (`20-30` → 20 s).
 - **Instruktion och video** — varje övning har klickbara länkar till teknikklipp och skriftliga instruktioner, och i passet räcker ett tryck på ▶ vid övningens namn. Länkarna är sökningar på engelska söktermer (`exercise-links.js`) i stället för enskilda klipp, så de kan inte dö och funkar även för övningar du själv lagt in. Vill du ha ett bestämt klipp klistrar du in adressen i övningens fält *Länk till video eller instruktion* — då används den i stället.
 - **Fritt pass** — starta utan rutin och lägg till övningar medan du kör.
 - **Statistik** — pass och volym per vecka (senaste 8), tyngsta lyften med uppskattat 1RM, historik per övning, och full passhistorik.
 - **Veckologg** — axel på morgonen (0-10), energi (1-5), sömn, bästa lyft och kommentar. Axelvärden över 3/10 markeras, enligt programmets gräns.
 - **Program, kost och axel** — 12-veckorsplanen, veckoschemat, belastningsreglerna, idrottsanpassningen, kostupplägget med proteinräknare utifrån din kroppsvikt, tillskottstabellen, återhämtningsreglerna och axelns varningstecken finns i appen offline.
 - **Backup** — exportera allt som tidsstämplad JSON (`styrka-ÅÅÅÅ-MM-DD.json`), importera med *Ersätt allt* eller *Slå ihop*. Diskret påminnelse när backupen är > 7 dagar gammal eller något ändrats sedan dess (aldrig mitt i ett pass).
+
+## Nedräkning med släckt skärm
+
+iOS ger en webbapp inget sätt att larma medan appen är suspenderad: schemalagda
+lokala notiser finns inte i webbplattformen (Notification Triggers kom aldrig
+till Safari), `setTimeout` fryser, service workern kan inte väcka sig själv och
+Wake Lock saknas. Men **medieuppspelning fortsätter med låst skärm**.
+
+Därför ligger signalen i ljudet, inte i en timer. `timer.js` bakar hela
+nedräkningen till en wav i minnet — tystnad fram till måltiden, sedan tre pulser
+på 880 Hz — och startar den som en enda uppspelning i användarens tryck. Pipet
+kommer på rätt sekund utan att någon kod behöver köra. Siffran på skärmen är
+bara en spegling av samma måltidpunkt.
+
+- **8 kHz, 16-bitars mono** → 16 kB per sekund. Tystnaden är redan nollor i en ny
+  `ArrayBuffer`, så bara pulserna skrivs; en nedräkning byggs på någon millisekund.
+- **Taket är 600 sekunder** (≈9,6 MB). Längre nedräkningar — i praktiken bara zon
+  2 — får den gamla vägen: tickern plus ett pip via Web Audio, som bara hörs med
+  appen i förgrunden.
+- **`navigator.audioSession.type = 'playback'`** är det som får iOS att fortsätta
+  spela med låst skärm. Den återställs till `'auto'` när nedräkningen är slut.
+- **Låsskärmen** visar övning och måltid via Media Session, och kan stoppa.
+
+Att veta: uppspelningen **tar över ljudet** medan nedräkningen pågår, så musik i
+en annan app pausas i de sekunderna. Ett samtal eller en annan app som tar
+ljudfokus kan avbryta signalen. Mediavolymen måste vara uppe — men till skillnad
+från notisljud påverkas medieuppspelning inte av ringsignalsknappen.
+Notis och vibration ligger kvar som komplement (vibration är en no-op på iOS,
+som saknar `navigator.vibrate`).
+
+Enda helt vattentäta alternativet är web push från en server, som väcker enheten
+via APNs. Det kräver en backend och skulle ta bort appens poäng: allt lokalt,
+inget konto, fungerar offline.
 
 ## Köra lokalt
 
@@ -63,6 +97,7 @@ startar sedan i helskärm och fungerar offline.
 | `stats.js` | Volym, rekord, historik per övning, veckosummor |
 | `backup.js` | Export/import + backuppåminnelse |
 | `ui.js` | Delade DOM-hjälpare (element, modal, toast, fält) |
+| `timer.js` | Nedräkning för tidsövningar: flytande fält, ljud, notis |
 | `view-train.js` | Träna: dagens pass, loggning av set, passdetaljer |
 | `view-routines.js` | Rutiner: skapa, ändra, ordna, kopiera |
 | `view-exercises.js` | Övningsbibliotek, övningsinfo, väljardialog |

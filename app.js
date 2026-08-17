@@ -22,6 +22,24 @@ const appEl = document.getElementById('app');
 const titleEl = document.getElementById('view-title');
 const backBtn = document.getElementById('back-btn');
 const reminderEl = document.getElementById('reminder');
+const headerEl = document.querySelector('.app-header');
+
+// Headern är sticky men har varierande höjd: titeln kan vara olika hög, en
+// bakåtknapp kan finnas och backup-påminnelsen kommer och går. Element som ska
+// fästa strax under den (passöversikten) behöver höjden, så den exponeras som
+// CSS-variabel och hålls uppdaterad.
+function syncHeaderHeight() {
+  const h = Math.round(headerEl.getBoundingClientRect().height);
+  document.documentElement.style.setProperty('--header-h', `${h}px`);
+}
+
+if ('ResizeObserver' in window) {
+  new ResizeObserver(syncHeaderHeight).observe(headerEl);
+} else {
+  window.addEventListener('resize', syncHeaderHeight);
+  window.addEventListener('orientationchange', syncHeaderHeight);
+}
+syncHeaderHeight();
 
 // Undervyer under Mer-fliken → navknappen "Mer" är aktiv och en bakåtknapp visas.
 const SUBVIEWS = {

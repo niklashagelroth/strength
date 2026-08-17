@@ -174,6 +174,12 @@ export function formatVolume(kg) {
   return `${Math.round(kg)} kg`;
 }
 
+// Klockformat, t.ex. "0:07" eller "12:34". Används av passtiden och nedräkningen.
+export function mmss(sec) {
+  const s = Math.max(0, Math.round(sec));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
 export function formatDuration(sec) {
   if (!sec) return '—';
   const m = Math.floor(sec / 60);

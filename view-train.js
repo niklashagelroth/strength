@@ -6,17 +6,18 @@ import { putSession, deleteSession } from './db.js';
 import {
   createSession, createEntry, createSet, metricFields, FIELD_SHORT,
   setIsLogged, completedSets, sessionVolume, sessionSetCount, sessionTargetSetCount,
-  setLabel, numOrNull, today,
+  setLabel, numOrNull, firstNumber, today,
 } from './model.js';
 import { planForToday, isoDay, programStatus } from './program.js';
 import {
-  doneSessions, lastPerformance, byDateDesc, formatVolume, formatDate, formatDuration,
+  doneSessions, lastPerformance, byDateDesc, formatVolume, formatDate, formatDuration, mmss,
 } from './stats.js';
 import {
   el, clearNode, toast, openModal, confirmModal, emptyState, panel, chip, numInput, select,
 } from './ui.js';
 import { exerciseInfoBody, exercisePickerModal } from './view-exercises.js';
 import { exerciseLinks } from './exercise-links.js';
+import { startCountdown, stopCountdown } from './timer.js';
 
 // Vila sedan senaste avklarade set. Nollställs när passet startar/avslutas.
 let lastSetAt = null;
@@ -250,26 +251,26 @@ function renderActiveSession(app, ctx, session) {
   const totalSets = sessionTargetSetCount(session);
   const doneSets = sessionSetCount(session);
 
-  app.appendChild(el('div', { class: 'session-bar' }, [
-    el('div', {}, [
-      el('div', { class: 'sb-title' }, session.name),
+  // Översikten följer med när man skrollar: set, volym, passtid och vila ska
+  // vara läsbara var man än är i passet, utan att skrolla upp. Passets namn står
+  // redan i headern, så det utelämnas här — blocket ska ta så lite höjd som möjligt.
+  app.appendChild(el('div', { class: 'session-sticky' }, [
+    el('div', { class: 'session-bar' }, [
       el('div', { class: 'sb-sub', id: 'sb-sub' },
         sessionSubtitle(session, doneSets, totalSets)),
+      el('div', { class: 'sb-timer', id: 'sb-timer' }, elapsedLabel(session)),
     ]),
-    el('div', { class: 'sb-timer', id: 'sb-timer' }, elapsedLabel(session)),
+    el('div', { class: 'progress-track' }, [
+      el('div', {
+        class: 'progress-fill', id: 'session-progress',
+        style: `width:${totalSets ? (doneSets / totalSets) * 100 : 0}%`,
+      }),
+    ]),
   ]));
 
   if (session.deload) {
     app.appendChild(el('div', { class: 'note warn' }, 'Lätt vecka — arbetsset är nedskalade.'));
   }
-
-  const progress = el('div', { class: 'progress-track' }, [
-    el('div', {
-      class: 'progress-fill', id: 'session-progress',
-      style: `width:${totalSets ? (doneSets / totalSets) * 100 : 0}%`,
-    }),
-  ]);
-  app.appendChild(progress);
 
   const updateProgress = () => {
     const done = sessionSetCount(session);
@@ -309,6 +310,7 @@ function renderActiveSession(app, ctx, session) {
           await deleteSession(session.id);
           lastSetAt = null;
           stopTicker();
+          stopCountdown();
           toast('Passet avbrutet.');
           await ctx.render();
         },
@@ -442,6 +444,51 @@ function setRow(entry, set, i, last, save, updateProgress, onRemove) {
     ]));
   }
 
+  // Tidsövningar: starta en nedräkning på setets måltid. Ljud och notis när den
+  // går ut, så man kan hålla en planka utan att stirra på telefonen.
+  if (entry.metric === 'time') {
+    const timerBtn = el('button', { class: 'set-timer', type: 'button' }, '▶');
+    // Sekundfältet först, annars förra passets värde, annars målet ur programmet.
+    const plannedSeconds = () => {
+      if (set.seconds != null) return set.seconds;
+      if (lastSet && lastSet.seconds != null) return lastSet.seconds;
+      return firstNumber(entry.targetReps);
+    };
+    const idle = () => {
+      const s = plannedSeconds();
+      timerBtn.textContent = '▶';
+      timerBtn.classList.remove('running');
+      timerBtn.disabled = !s;
+      timerBtn.title = s ? `Starta nedräkning på ${s} s` : 'Ingen måltid att räkna ned';
+    };
+    idle();
+    inputs.seconds.addEventListener('input', idle);
+
+    timerBtn.addEventListener('click', () => {
+      if (timerBtn.classList.contains('running')) { stopCountdown(); return; }
+      const s = plannedSeconds();
+      if (!s) return;
+      timerBtn.textContent = '⏹';
+      timerBtn.classList.add('running');
+      timerBtn.title = 'Stoppa nedräkningen';
+      startCountdown({
+        seconds: s,
+        label: `${entry.name} · set ${i + 1}`,
+        // Tiden är hållen — fyll i den så man inte behöver knappa in det själv.
+        onFinish: () => {
+          if (set.seconds == null) {
+            set.seconds = s;
+            inputs.seconds.value = String(s);
+            save();
+            updateProgress();
+          }
+        },
+        onEnd: idle,
+      });
+    });
+    row.appendChild(timerBtn);
+  }
+
   // RIR är valfritt men det som styr belastningen i programmet.
   const rirInput = numInput(set.rir, { max: 5, placeholder: '–', class: 'set-input rir' });
   rirInput.addEventListener('input', () => { set.rir = numOrNull(rirInput.value); save(); });
@@ -530,6 +577,7 @@ async function finishSession(ctx, session) {
   await putSession(session);
   lastSetAt = null;
   stopTicker();
+  stopCountdown();
   toast(`Pass sparat: ${logged} set${sessionVolume(session) ? `, ${formatVolume(sessionVolume(session))}` : ''}.`);
   await ctx.render();
 }
@@ -601,12 +649,6 @@ function elapsedLabel(session) {
   const since = Math.floor((Date.now() - Date.parse(session.startedAt)) / 1000);
   const rest = lastSetAt ? Math.floor((Date.now() - lastSetAt) / 1000) : null;
   return rest != null && rest < 600 ? `⏱ ${mmss(since)} · vila ${mmss(rest)}` : `⏱ ${mmss(since)}`;
-}
-
-function mmss(sec) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 function startTicker(session) {

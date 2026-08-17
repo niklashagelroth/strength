@@ -240,6 +240,18 @@ h2.section {
 .pr-val { text-align: right; flex-shrink: 0; }
 
 /* ---- Pågående pass ---- */
+/* Översikten fäster strax under headern så set, tid och vila alltid syns.
+   --header-h sätts från app.js eftersom headern varierar i höjd. */
+.session-sticky {
+  position: sticky;
+  top: var(--header-h, 60px);
+  z-index: 9;                       /* under headern (10), över korten */
+  background: var(--bg);
+  /* Blöder ut till #app:s padding så inget skrollar fram i kanterna. */
+  margin: -6px -16px 8px;
+  padding: 6px 16px 8px;
+  box-shadow: 0 8px 12px -8px rgba(0, 0, 0, 0.7);
+}
 .session-bar {
   display: flex;
   align-items: center;
@@ -248,13 +260,24 @@ h2.section {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 10px 14px;
 }
-.sb-title { font-weight: 700; }
-.sb-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+/* Enradig: siffrorna är hela innehållet, så de får bära vikten själva. */
+.sb-sub {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .sb-timer {
   font-variant-numeric: tabular-nums;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--accent);
   flex-shrink: 0;
   text-align: right;
@@ -267,6 +290,7 @@ h2.section {
   overflow: hidden;
   margin: 10px 0 4px;
 }
+.session-sticky .progress-track { margin: 8px 0 0; }
 .progress-fill { height: 100%; background: var(--green); transition: width 0.2s; }
 
 .entry-card { padding: 14px; margin: 12px 0; }
@@ -349,6 +373,19 @@ input.set-input.rir { opacity: 0.85; }
   font-size: 1.1rem;
 }
 .set-row.done .set-check { background: var(--green); border-color: var(--green); color: #fff; }
+/* Nedräkningsknapp — bara på tidsövningar, samma yta som ✓ så raden håller takten */
+.set-timer {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+.set-timer.running { background: var(--primary); border-color: var(--primary); color: #fff; }
+.set-timer:disabled { color: var(--muted); opacity: 0.4; }
 .set-del {
   width: 24px;
   flex-shrink: 0;
@@ -683,6 +720,50 @@ input.mini { padding: 9px 10px; }
   height: 8px;
   border-radius: 50%;
   background: var(--green);
+}
+
+/* ---- Nedräkning ---- */
+.timer-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);
+  max-width: 656px;
+  margin: 0 auto;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+.timer-bar.done { background: var(--green); }
+.tb-main { flex: 1; min-width: 0; }
+.tb-label {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tb-time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.tb-stop {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1rem;
 }
 
 .active-pill {

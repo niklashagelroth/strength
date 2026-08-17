@@ -297,6 +297,13 @@ function numOr(v, fallback) {
   return Number.isFinite(n) && n > 0 ? Math.round(n) : fallback;
 }
 
+// Första talet i en målsträng: "20-30" → 20, "60" → 60, "" → null. Intervall
+// tolkas som sitt lägsta värde — det är målet som säkert ska nås.
+export function firstNumber(text) {
+  const m = String(text == null ? '' : text).match(/\d+(?:[.,]\d+)?/);
+  return m ? Number(m[0].replace(',', '.')) : null;
+}
+
 export function numOrNull(v) {
   if (v === '' || v == null) return null;
   const n = Number(v);
